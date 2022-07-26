@@ -1,0 +1,121 @@
+/* CSS Document */
+/* 
+Họ và tên   : Huỳnh Minh Thắng
+MSSV        : 19120129
+*/
+html {
+  background-color: #e67e22;
+}
+body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+canvas {
+  position: absolute;
+  z-index: -1;
+}
+.nextMoveIndicator {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #636e72;
+  border: 3px solid white;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  left: 0px;
+  top: 0px;
+  z-index: 1;
+}
+.chessUnit {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #ffeaa7;
+  width: 40px;
+  height: 40px;
+  font-size: 28px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  left: 0px;
+  top: 0px;
+  z-index: 0;
+}
+.sidebar {
+  width: 300px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.btn {
+  font-size: 35px;
+  border-radius: 2%;
+  padding: 10px;
+  background-color: #f56200;
+  transition: background-color 0.2s;
+  border: 2px solid black;
+  margin: 10px;
+}
+.btn:hover,
+.btn:active {
+  background-color: #e45b00;
+  cursor: pointer;
+}
+.red {
+  color: rgb(255, 25, 25);
+  border: 3px solid rgb(255, 25, 25);
+}
+.black {
+  color: rgb(24, 24, 24);
+  border: 3px solid rgb(24, 24, 24);
+}
+.historyDot {
+  position: absolute;
+  background-color: #fff;
+  opacity: 0.8;
+  border-radius: 50%;
+  width: 5px;
+  height: 5px;
+  border: 3px solid #f56200;
+  box-shadow: 0 0 0 1px white;
+  left: 0px;
+  top: 0px;
+  z-index: -1;
+}
+.historyBigDot {
+  position: absolute;
+  background-color: none;
+  border-radius: 50%;
+  opacity: 0.8;
+  width: 45px;
+  height: 45px;
+  border: 3px solid white;
+  left: 0px;
+  top: 0px;
+  z-index: -1;
+}
+.checkmateDot {
+  position: absolute;
+  background-color: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  border: 3px solid white;
+  left: 0px;
+  top: 0px;
+  z-index: -1;
+}
+.notification {
+  text-shadow: 0 0 10px white;
+  color: #2c3e50;
+  font-size: 40px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
