@@ -5,7 +5,7 @@ Họ và tên   : Huỳnh Minh Thắng
 MSSV        : 19120129
 */
 "use strict";
-var width = 50; //Width of a square
+var width = 55; //Width of a square
 var startX = 410; //Board starts from left=410
 var startY = 30; //Board starts from left=410
 var unitPadding = -15; //Padding so that units stay centered
@@ -37,6 +37,10 @@ for (let i = 0; i <= 8; i++) {
 }
 // onReset - This function is called when the reset button is clicked
 function onReset() {
+  $(".undo").show();
+  $(".victory").hide();
+  $("body").css("background-color", "");
+  boardHistory.reset();
   HistoryDotIndicator.hide();
   for (let i = 0; i <= 8; i++) {
     myBoard[i] = [];
@@ -71,6 +75,10 @@ class BoardHistory {
   }
   addHistoryDot(lastPos, currentPos) {
     this.historyDot.push([lastPos, currentPos]);
+  }
+  reset() {
+    this.history = [];
+    this.historyDot = [];
   }
   undo() {
     if (this.history.length > 0) {
@@ -250,15 +258,29 @@ class Unit {
                 if (myBoard[that.pos[0]][that.pos[1]] !== null) myBoard[that.pos[0]][that.pos[1]].disable(); //if unit overlap with enemy, remove enemy by set it invisbile. We can then reuse this element to reset the game to the initial state.
                 myBoard[that.pos[0]][that.pos[1]] = that; //assign unit to Board's new position
                 //calculate all possible moves of enemy next turn
+                let enemyCanMove = false;
                 const myAttackers = myBoard.flat().filter((unit) => unit !== null && unit.color === playerTurn);
                 for (let i = 0; i < myBoard.length; i++) {
                   for (let j = 0; j < myBoard[i].length; j++) {
                     if (myBoard[i][j] !== null) {
-                      myBoard[i][j].calculateNextMoves(myBoard, myAttackers);
+                      let tmpMoves = myBoard[i][j].calculateNextMoves(myBoard, myAttackers);
+                      if (myBoard[i][j].color !== playerTurn && tmpMoves.length > 0) {
+                        enemyCanMove = true;
+                        console.log(myBoard[i][j].pos + " can move to " + tmpMoves);
+                      }
                     }
                   }
                 }
-
+                if (!enemyCanMove) {
+                  endTheGame(that.color);
+                  NextMoveIndicator.hide(); //Clear indicators
+                  tmp.css({
+                    left: that.pos[0] * width + startX + unitPadding + "px",
+                    top: that.pos[1] * width + startY + unitPadding + "px",
+                    "z-index": 0,
+                  });
+                  return;
+                }
                 if (canCheck(myBoard, myAttackers)) {
                   const enemyKing = myBoard
                     .flat()
@@ -275,7 +297,6 @@ class Unit {
                 }
                 //switch turn
                 switchTurn();
-
                 break;
               }
             }
@@ -476,7 +497,7 @@ class Unit {
         //move piece
         copyBoard[nextMove[0]][nextMove[1]] = copyBoard[this.pos[0]][this.pos[1]];
         copyBoard[this.pos[0]][this.pos[1]] = null;
-        if (canCheck(copyBoard, attackers) && attackers[0].color !== this.color) {
+        if (canCheck(copyBoard, attackers)) {
           this.nextMoves = this.nextMoves.filter((move) => move[0] !== nextMove[0] || move[1] !== nextMove[1]);
         }
       }
@@ -602,32 +623,33 @@ function drawKingPos(ctx, x, y, width) {
   ctx.lineTo(x - width, y + width);
 }
 function canCheck(board, attackers) {
-  const king = board
-    .flat()
-    .filter((unit) => unit !== null && unit.color !== attackers[0].color && unit.role === Role.king)[0];
+  //find king in board
+  let kingPos, otherKingPos;
+  for (let i = 0; i < board.length; i++) {
+    for (let j = 0; j < board[0].length; j++) {
+      if (board[i][j] != null && board[i][j].role == Role.king) {
+        if (board[i][j].color !== attackers[0].color) kingPos = [i, j];
+        else otherKingPos = [i, j];
+      }
+    }
+  }
   for (const attacker of attackers) {
     let moves = attacker.getMoves(board);
     for (const move of moves) {
-      if (move[0] === king.pos[0] && move[1] === king.pos[1]) {
-        console.log(
-          attacker.color +
-            " " +
-            attacker.role +
-            " at " +
-            attacker.pos +
-            " can check " +
-            king.color +
-            " " +
-            king.role +
-            " at " +
-            king.pos
-        );
-        console.log(board);
+      if (move[0] === kingPos[0] && move[1] === kingPos[1]) {
         return true;
       }
     }
   }
-  return false;
+  //check if myKing is in the same row or column with enemy's king
+  if (kingPos[0] !== otherKingPos[0]) return false;
+  //check if any unit between my king and enemy's king
+  let low_y = Math.min(kingPos[1], otherKingPos[1]);
+  let high_y = Math.max(kingPos[1], otherKingPos[1]);
+  for (let i = low_y + 1; i < high_y; i++) {
+    if (board[kingPos[0]][i] != null) return false;
+  }
+  return true;
 }
 // let e = allUnits.filter((unit) => unit.color === color);
 // //remove disabled units
@@ -657,19 +679,25 @@ function canCheck(board, attackers) {
 //   }
 // }
 // return true;
-function endTheGame(loserColor = "") {
-  if (loserColor === "") {
-    $(".notification").text("Draw!");
-    $(".notification").show();
-    setTimeout(() => {
-      $(".notification").hide();
-    }, 2000);
-  } else {
-    let winnerColor = loserColor === "red" ? "black" : "red";
-    $(".notification").text(`${winnerColor} wins!`);
-    $(".notification").show();
-    setTimeout(() => {
-      $(".notification").hide();
-    }, 2000);
+function endTheGame(winnerColor = "") {
+  // if (winnerColor === "") {
+  //   $(".notification").text("Draw!");
+  //   $(".notification").show();
+  //   setTimeout(() => {
+  //     $(".notification").hide();
+  //   }, 2000);
+  // } else {
+  //   $(".notification").text(`${winnerColor} wins!`);
+  //   $(".notification").show();
+  //   setTimeout(() => {
+  //     $(".notification").hide();
+  //   }, 2000);
+  // }
+  $("body").css("background-color", "black");
+  for (const unit of allUnits) {
+    unit.disable();
   }
+  $(".victory").text(winnerColor + " wins!");
+  $(".victory").show();
+  $(".undo").hide();
 }
